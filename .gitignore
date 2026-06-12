@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.env
+.venv/
+venv/
+config/local.yaml
+data/chroma_db/
+*.log
+.pytest_cache/
+.DS_Store

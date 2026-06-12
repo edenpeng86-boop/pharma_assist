@@ -1,0 +1,31 @@
+llm:
+  provider: openai
+  model: gpt-4o-mini
+  temperature: 0
+  max_tokens: 1200
+  offline_fallback: true
+
+embedding:
+  provider: openai
+  model: text-embedding-3-small
+  offline_fallback: true
+
+rag:
+  chunk_size: 600
+  chunk_overlap: 80
+  top_k: 8
+  rerank_top_k: 4
+  collection_name: pharmassist
+
+agent:
+  default_strategy: decompose
+  high_risk_requires_review: true
+  min_evidence_count: 1
+
+server:
+  host: 0.0.0.0
+  port: 8000
+
+knowledge_base:
+  docs_path: data/knowledge
+  persist_dir: data/chroma_db

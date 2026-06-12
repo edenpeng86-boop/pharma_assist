@@ -1,0 +1,3 @@
+{"question":"液体制剂生产区洁净级别如何要求？","expected_source":"gmp_demo.txt","expected_keywords":["洁净区","污染","工艺"]}
+{"question":"发生偏差后应该如何处理？","expected_source":"gmp_demo.txt","expected_keywords":["偏差","调查","CAPA"]}
+{"question":"产品放行前需要审核哪些内容？","expected_source":"gmp_demo.txt","expected_keywords":["放行","生产记录","偏差"]}
