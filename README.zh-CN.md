@@ -5,32 +5,32 @@
 [![Deutsch](https://img.shields.io/badge/lang-Deutsch-darkgreen)](README.de.md)
 # PharmAssist
 
-AI GMP compliance assistant for pharmaceutical teams.
+针对制药团队的 AI GMP 合规助手。
 
-PharmAssist is a portfolio-grade RAG Agent demo for GMP, pharmacopeia, and internal SOP question answering. It focuses on the parts that matter in regulated scenarios: traceable citations, evidence-grounded answers, risk flags, and a small evaluation loop.
+PharmAssist 是一个面向 GMP、药典和内部 SOP 问答的组合式 RAG Agent 演示示例。它聚焦于在受监管场景中重要的部分：可追溯的引用、基于证据的答案、风险标记以及一个小型的评估闭环。
 
-## Implemented MVP
+## 已实现的 MVP
 
-- FastAPI service with `/chat`, `/health`, and `/history/{session_id}`.
-- Document ingestion for `.txt`, `.md`, `.pdf`, and `.docx`.
-- Chroma vector index with metadata-preserving chunks.
-- Query decomposition and HyDE-style retrieval hooks.
-- Lightweight reranking with token overlap scoring.
-- Structured evidence output with source, chunk id, and score.
-- Citation and evidence checks before final response.
-- Risk classification for high-impact GMP questions.
-- Offline fallback mode for demos without an API key.
-- Tiny evaluation runner for retrieval/citation quality.
+- 提供带有 `/chat`、`/health` 和 `/history/{session_id}` 路由的 FastAPI 服务。
+- 支持 `.txt`、`.md`、`.pdf` 和 `.docx` 的文档导入。
+- 使用保留元数据块的 Chroma 向量索引。
+- 查询分解与 HyDE 风格的检索钩子。
+- 使用词元重叠打分的轻量级重排序器（reranking）。
+- 结构化的证据输出（包含来源、chunk id 和分数）。
+- 在生成最终回答前进行引用与证据校验。
+- 对高影响的 GMP 问题进行风险分类。
+- 在没有 API Key 时有离线回退模式以便演示。
+- 用于检索/引用质量的小型评估执行器。
 
-## Architecture
+## 架构
 
 ```text
 User / API Client
-      |
-      v
+	  |
+	  v
 FastAPI Routes
-      |
-      v
+	  |
+	  v
 PharmAssistAgent
   |-- classify risk
   |-- choose retrieval strategy
@@ -38,12 +38,12 @@ PharmAssistAgent
   |-- rerank evidence
   |-- generate grounded answer
   |-- validate citations
-      |
-      v
+	  |
+	  v
 RAGEngine -> Chroma -> Knowledge Base
 ```
 
-## Quick Start
+## 快速开始
 
 ```bash
 python -m venv .venv
@@ -54,7 +54,7 @@ python scripts/init_kb.py
 python -m src.api.app
 ```
 
-Test the API:
+测试 API：
 
 ```bash
 curl -X POST http://localhost:8000/chat ^
@@ -62,9 +62,9 @@ curl -X POST http://localhost:8000/chat ^
   -d "{\"question\":\"液体制剂生产区洁净级别如何要求？\",\"session_id\":\"demo\"}"
 ```
 
-If `OPENAI_API_KEY` is not configured, the project runs in deterministic demo mode. This is intentional: interviewers can still start the service and inspect the workflow without paid credentials.
+如果未配置 `OPENAI_API_KEY`，项目将以确定性的演示模式运行。这是有意为之：面试者仍然可以启动服务并检查工作流，而不需要付费凭证。
 
-## Project Structure
+## 项目结构
 
 ```text
 pharmcodex/
@@ -87,39 +87,41 @@ pharmcodex/
 └── tests/
 ```
 
-## Example Response
+## 示例响应
 
 ```json
 {
   "answer": "根据已检索到的 GMP/SOP 证据，液体制剂生产区应结合污染风险、工艺暴露程度和产品特性确定洁净级别。涉及无菌或高污染风险步骤时，应采用更严格的洁净控制，并保留环境监测记录。[1]",
   "sources": [
-    {
-      "id": "gmp_demo.txt:0",
-      "source": "gmp_demo.txt",
-      "content": "药品生产应当建立防止污染和交叉污染的措施...",
-      "score": 0.72
-    }
+	{
+	  "id": "gmp_demo.txt:0",
+	  "source": "gmp_demo.txt",
+	  "content": "药品生产应当建立防止污染和交叉污染的措施...",
+	  "score": 0.72
+	}
   ],
   "risk_level": "medium",
   "citation_check": {
-    "has_citation": true,
-    "grounded": true
+	"has_citation": true,
+	"grounded": true
   }
 }
 ```
 
-## Evaluation
+## 评估
 
 ```bash
 python -m src.evaluation.test_suite
 ```
 
-The evaluation runner reports retrieval hit rate, citation presence, and refusal behavior for sample GMP questions.
+评估执行器会报告示例 GMP 问题的检索命中率、引用存在性和拒绝行为。
 
-## Roadmap
+## 路线图
 
-- Replace lightweight reranker with BGE or Cohere reranker.
-- Add BM25 + vector hybrid retrieval.
-- Convert the workflow to LangGraph nodes.
-- Add Redis or SQLite-backed memory.
-- Add Streamlit demo page and Docker packaging.
+- 用 BGE 或 Cohere 重排序器替换轻量级重排序器。
+- 添加 BM25 + 向量的混合检索。
+- 将工作流转换为 LangGraph 节点。
+- 添加基于 Redis 或 SQLite 的记忆（memory）。
+- 添加 Streamlit 演示页面与 Docker 打包。
+
+
