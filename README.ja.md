@@ -12,6 +12,7 @@ PharmAssist は、GMP、薬局方、および社内 SOP に関する質問応答
 ## 実装済みの MVP
 
 - `/chat`、`/health`、`/history/{session_id}` エンドポイントを持つ FastAPI サービス。
+- ストリーミング応答、Markdown 表示、言語切替、応答時間、処理プロセス、証拠パネルを備えた Web チャットクライアント。
 - `.txt`、`.md`、`.pdf`、`.docx` のドキュメント取り込み。
 - メタデータを保持するチャンクを用いた Chroma ベクトルインデックス。
 - クエリ分解と HyDE 風の検索フック。
@@ -54,6 +55,35 @@ python scripts/init_kb.py
 python -m src.api.app
 ```
 
+実際のモデルサービスを使う場合は、ナレッジベースを初期化する前に `.env` を編集してください：
+
+```env
+LLM_API_KEY=your-chat-model-key
+LLM_BASE_URL=https://api.openai.com/v1
+LLM_MODEL=gpt-4o-mini
+
+EMBEDDING_API_KEY=your-embedding-model-key
+EMBEDDING_PROVIDER=ollama
+EMBEDDING_BASE_URL=http://localhost:11434
+EMBEDDING_MODEL=bge-m3
+```
+
+`LLM_*` と `EMBEDDING_*` は別々のプロバイダーを指定できます。ローカルの中国語検索には `EMBEDDING_PROVIDER=ollama` と `EMBEDDING_MODEL=bge-m3` を推奨します。OpenAI 互換プロバイダーを使う場合、新しい変数が未設定なら `OPENAI_API_KEY` / `OPENAI_BASE_URL` にフォールバックします。キーをまったく設定せず Ollama も使わない場合でも、PharmAssist はデモモードで動作し、チャットは決定的な応答、検索はローカル Hash Embedding を使用します。
+
+Embedding provider またはモデルを変更した後は、ベクトルデータベースを再構築してください：
+
+```bash
+python scripts/init_kb.py
+```
+
+`init_kb.py` はデフォルトで `data/chroma_db/` を再構築します。これにより HashEmbeddings、OpenAI Embeddings、Ollama BGE-M3 を切り替えたときのベクトル次元不一致エラーを避けられます。既存 collection を意図的に保持したい場合のみ `python scripts/init_kb.py --append` を使ってください。
+
+Web クライアントを開く：
+
+```text
+http://localhost:8000/
+```
+
 API のテスト：
 
 ```bash
@@ -62,7 +92,17 @@ curl -X POST http://localhost:8000/chat ^
   -d "{\"question\":\"液体製剤の製造エリアの清浄度要件はどうなっていますか？\",\"session_id\":\"demo\"}"
 ```
 
-`OPENAI_API_KEY` が設定されていない場合、プロジェクトはデターミニスティックなデモモードで動作します。これは意図的な動作で、面接者は有料の認証情報がなくてもサービスを起動してワークフローを確認できます。
+API キーが設定されていない場合、プロジェクトはデターミニスティックなデモモードで動作します。これは意図的な動作で、面接者は有料の認証情報がなくてもサービスを起動してワークフローを確認できます。
+
+## ログ
+
+実行時ログはコンソールと次のファイルに出力されます：
+
+```text
+logs/pharmassist.log
+```
+
+各リクエストについて開始、終了、レイテンシ、ステータスコード、および `/chat` のリスクレベル、証拠数、人手レビュー要否を記録します。未処理エラーはログファイルにスタックトレース付きで保存されます。
 
 ## プロジェクト構成
 

@@ -12,6 +12,7 @@ PharmAssist ist eine RAG-Agent-Demo in Portfolio-Qualität für Fragen zu GMP, P
 ## Implementiertes MVP
 
 - FastAPI-Service mit den Endpunkten `/chat`, `/health` und `/history/{session_id}`.
+- Web-Chat-Client mit Streaming-Antworten, Markdown-Rendering, Sprachumschaltung, Antwortzeit, Prozessablauf und Evidenzpanel.
 - Dokumenteneinlese-Funktion für `.txt`, `.md`, `.pdf` und `.docx`.
 - Chroma-Vektorindex mit metadaten-erhaltenden Chunks.
 - Query-Decomposition und HyDE-ähnliche Retrieval-Hooks.
@@ -54,6 +55,35 @@ python scripts/init_kb.py
 python -m src.api.app
 ```
 
+Wenn du echte Modelldienste verwenden möchtest, bearbeite `.env`, bevor du die Knowledge Base initialisierst:
+
+```env
+LLM_API_KEY=your-chat-model-key
+LLM_BASE_URL=https://api.openai.com/v1
+LLM_MODEL=gpt-4o-mini
+
+EMBEDDING_API_KEY=your-embedding-model-key
+EMBEDDING_PROVIDER=ollama
+EMBEDDING_BASE_URL=http://localhost:11434
+EMBEDDING_MODEL=bge-m3
+```
+
+`LLM_*` und `EMBEDDING_*` können auf unterschiedliche Anbieter zeigen. Für lokale chinesische Retrieval-Qualität wird `EMBEDDING_PROVIDER=ollama` mit `EMBEDDING_MODEL=bge-m3` empfohlen. Bei OpenAI-kompatiblen Anbietern fällt die App aus Kompatibilitätsgründen auf `OPENAI_API_KEY` / `OPENAI_BASE_URL` zurück, wenn die neuen Variablen nicht gesetzt sind. Ohne konfigurierte Keys und ohne Ollama läuft PharmAssist weiterhin im Offline-Demo-Modus mit deterministischen Chat-Antworten und lokalen Hash Embeddings.
+
+Nach Änderung des Embedding-Providers oder Modells muss die Vektordatenbank neu aufgebaut werden:
+
+```bash
+python scripts/init_kb.py
+```
+
+`init_kb.py` baut `data/chroma_db/` standardmäßig neu auf. Dadurch werden Dimensionsfehler vermieden, wenn zwischen HashEmbeddings, OpenAI Embeddings und Ollama BGE-M3 gewechselt wird. Verwende `python scripts/init_kb.py --append` nur, wenn die bestehende Collection bewusst erhalten bleiben soll.
+
+Web-Client öffnen:
+
+```text
+http://localhost:8000/
+```
+
 API testen:
 
 ```bash
@@ -62,7 +92,17 @@ curl -X POST http://localhost:8000/chat ^
   -d "{\"question\":\"液体制剂生产区洁净级别如何要求？\",\"session_id\":\"demo\"}"
 ```
 
-Wenn `OPENAI_API_KEY` nicht konfiguriert ist, läuft das Projekt im deterministischen Demo-Modus. Das ist beabsichtigt: Interviewer können den Dienst starten und den Workflow prüfen, auch ohne bezahlte Zugangsdaten.
+Wenn kein API-Key konfiguriert ist, läuft das Projekt im deterministischen Demo-Modus. Das ist beabsichtigt: Interviewer können den Dienst starten und den Workflow prüfen, auch ohne bezahlte Zugangsdaten.
+
+## Logs
+
+Laufzeitlogs werden in der Konsole und in folgender Datei ausgegeben:
+
+```text
+logs/pharmassist.log
+```
+
+Jede Anfrage protokolliert Start, Ende, Latenz, Statuscode sowie Risiko-Level, Anzahl der Evidenzen und Human-Review-Status für `/chat`. Unbehandelte Fehler enthalten Stacktraces in der Logdatei.
 
 ## Projektstruktur
 

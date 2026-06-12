@@ -1,0 +1,1499 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PharmAssist</title>
+    <style>
+      :root {
+        --bg: #f4f6f8;
+        --panel: #ffffff;
+        --panel-soft: #f8fafc;
+        --text: #172033;
+        --muted: #697386;
+        --line: #d9e0ea;
+        --accent: #0f766e;
+        --accent-soft: #e7f5f2;
+        --blue: #2563eb;
+        --blue-soft: #eaf1ff;
+        --warn: #b45309;
+        --warn-soft: #fff7ed;
+        --danger: #b91c1c;
+        --danger-soft: #fff1f2;
+        --ok: #15803d;
+        --ok-soft: #eefbf2;
+        --shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          linear-gradient(180deg, rgba(15, 118, 110, 0.08), transparent 260px),
+          var(--bg);
+        color: var(--text);
+        font-family: Inter, "Segoe UI", "Microsoft YaHei", Arial, sans-serif;
+      }
+
+      button,
+      input,
+      textarea {
+        font: inherit;
+      }
+
+      .shell {
+        display: grid;
+        grid-template-rows: auto 1fr;
+        min-height: 100vh;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 14px 22px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+      }
+
+      .mark {
+        display: grid;
+        place-items: center;
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        background: var(--accent);
+        color: #fff;
+        font-weight: 800;
+      }
+
+      .brand-title {
+        margin: 0;
+        font-size: 18px;
+        line-height: 1.2;
+      }
+
+      .brand-subtitle {
+        margin: 2px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .top-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .link-button,
+      input {
+        height: 36px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.78);
+        color: var(--text);
+      }
+
+      .link-button {
+        display: inline-flex;
+        align-items: center;
+        padding: 0 12px;
+        text-decoration: none;
+        color: var(--muted);
+      }
+
+      input {
+        padding: 0 10px;
+      }
+
+      .select-wrap {
+        position: relative;
+        min-width: 144px;
+      }
+
+      .select-trigger {
+        display: inline-flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        width: 100%;
+        height: 36px;
+        border: 1px solid var(--line);
+        border-radius: 9px;
+        background: rgba(255, 255, 255, 0.88);
+        color: var(--text);
+        padding: 0 10px;
+      }
+
+      .select-trigger::after {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-right: 1.8px solid var(--muted);
+        border-bottom: 1.8px solid var(--muted);
+        transform: rotate(45deg) translateY(-2px);
+      }
+
+      .select-menu {
+        position: absolute;
+        z-index: 20;
+        top: calc(100% + 6px);
+        left: 0;
+        right: 0;
+        display: none;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: #fff;
+        box-shadow: 0 18px 38px rgba(15, 23, 42, 0.14);
+      }
+
+      .select-wrap.open .select-menu {
+        display: block;
+      }
+
+      .select-option {
+        display: block;
+        width: 100%;
+        height: auto;
+        border: 0;
+        border-radius: 0;
+        background: #fff;
+        padding: 10px 12px;
+        text-align: left;
+      }
+
+      .select-option:hover,
+      .select-option.active {
+        background: var(--accent-soft);
+        color: var(--accent);
+      }
+
+      main {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 390px;
+        gap: 18px;
+        padding: 0 18px 18px;
+      }
+
+      .workspace,
+      .inspector {
+        min-height: calc(100vh - 88px);
+        border: 1px solid rgba(217, 224, 234, 0.9);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.92);
+        box-shadow: var(--shadow);
+      }
+
+      .workspace {
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        min-width: 0;
+        overflow: hidden;
+      }
+
+      .chat-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(248, 250, 252, 0.82);
+      }
+
+      .field-row {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        min-width: 0;
+      }
+
+      label {
+        color: var(--muted);
+        font-size: 13px;
+        white-space: nowrap;
+      }
+
+      .transcript {
+        overflow: auto;
+        height: 100%;
+        padding: 22px;
+        padding-right: 28px;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+
+      .transcript::-webkit-scrollbar {
+        display: none;
+      }
+
+      .chat-scroll {
+        position: relative;
+        min-height: 0;
+        overflow: hidden;
+      }
+
+      .scroll-rail {
+        position: absolute;
+        z-index: 8;
+        top: 18px;
+        right: 10px;
+        bottom: 18px;
+        width: 7px;
+        border-radius: 999px;
+        background: rgba(203, 213, 225, 0.48);
+      }
+
+      .scroll-thumb {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        min-height: 38px;
+        border-radius: 999px;
+        background: linear-gradient(180deg, var(--accent), #38b2a4);
+        box-shadow: 0 3px 10px rgba(15, 118, 110, 0.25);
+        cursor: grab;
+      }
+
+      .scroll-thumb:active {
+        cursor: grabbing;
+      }
+
+      .inspector-scroll {
+        height: 100%;
+        overflow: auto;
+        padding-right: 14px;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+
+      .inspector-scroll::-webkit-scrollbar {
+        display: none;
+      }
+
+      .inspector-rail {
+        right: 8px;
+      }
+
+      .message {
+        max-width: 880px;
+        margin: 0 0 16px;
+        padding: 14px 16px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        line-height: 1.68;
+      }
+
+      .message.user {
+        margin-left: auto;
+        border-color: #b5ddd6;
+        background: var(--accent-soft);
+      }
+
+      .message.assistant {
+        background: #fff;
+      }
+
+      .message.error {
+        border-color: #fecaca;
+        background: var(--danger-soft);
+        color: var(--danger);
+      }
+
+      .message-content > :first-child {
+        margin-top: 0;
+      }
+
+      .message-content > :last-child {
+        margin-bottom: 0;
+      }
+
+      .message-content p {
+        margin: 0 0 10px;
+      }
+
+      .message-content h1,
+      .message-content h2,
+      .message-content h3,
+      .message-content h4,
+      .message-content h5,
+      .message-content h6 {
+        margin: 16px 0 8px;
+        line-height: 1.35;
+      }
+
+      .message-content h1 {
+        font-size: 20px;
+      }
+
+      .message-content h2 {
+        font-size: 18px;
+      }
+
+      .message-content h3,
+      .message-content h4 {
+        font-size: 16px;
+      }
+
+      .message-content hr {
+        border: 0;
+        border-top: 1px solid var(--line);
+        margin: 14px 0;
+      }
+
+      .message-content ul,
+      .message-content ol {
+        margin: 8px 0 10px 22px;
+        padding: 0;
+      }
+
+      .message-content li {
+        margin: 5px 0;
+      }
+
+      .message-content code {
+        border-radius: 5px;
+        background: #eef2f7;
+        padding: 2px 5px;
+        font-family: "Cascadia Code", Consolas, monospace;
+        font-size: 0.92em;
+      }
+
+      .message-content pre {
+        overflow: auto;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #111827;
+        padding: 12px;
+      }
+
+      .message-content pre code {
+        display: block;
+        background: transparent;
+        color: #e5e7eb;
+        padding: 0;
+        white-space: pre;
+      }
+
+      .message-content a {
+        color: var(--accent);
+      }
+
+      .message-content blockquote {
+        margin: 10px 0;
+        border-left: 3px solid var(--accent);
+        background: var(--accent-soft);
+        padding: 8px 12px;
+        color: #2f4f4a;
+      }
+
+      .message-content table {
+        width: 100%;
+        margin: 12px 0;
+        border-collapse: collapse;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        font-size: 14px;
+      }
+
+      .message-content th,
+      .message-content td {
+        border: 1px solid var(--line);
+        padding: 9px 10px;
+        vertical-align: top;
+        text-align: left;
+      }
+
+      .message-content th {
+        background: var(--panel-soft);
+        font-weight: 800;
+      }
+
+      .typing {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        color: var(--muted);
+      }
+
+      .spinner {
+        width: 17px;
+        height: 17px;
+        border: 2px solid #cbd5e1;
+        border-top-color: var(--accent);
+        border-radius: 999px;
+        animation: spin 0.85s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .composer {
+        padding: 16px;
+        border-top: 1px solid var(--line);
+        background: rgba(248, 250, 252, 0.82);
+      }
+
+      textarea {
+        width: 100%;
+        min-height: 92px;
+        max-height: 190px;
+        resize: vertical;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: #fff;
+        color: var(--text);
+        padding: 13px;
+        line-height: 1.55;
+      }
+
+      .actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 10px;
+      }
+
+      .hint {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      button {
+        height: 38px;
+        border: 1px solid var(--line);
+        border-radius: 9px;
+        background: #fff;
+        color: var(--text);
+        cursor: pointer;
+        padding: 0 14px;
+      }
+
+      button.primary {
+        border-color: var(--accent);
+        background: var(--accent);
+        color: #fff;
+      }
+
+      button.primary:hover {
+        background: #115e59;
+      }
+
+      button.secondary-danger {
+        display: none;
+        border-color: #fecaca;
+        background: var(--danger-soft);
+        color: var(--danger);
+      }
+
+      button.secondary-danger.visible {
+        display: inline-flex;
+        align-items: center;
+      }
+
+      button:disabled {
+        cursor: wait;
+        opacity: 0.65;
+      }
+
+      .inspector {
+        position: relative;
+        display: block;
+        overflow: hidden;
+      }
+
+      .panel {
+        padding: 15px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .panel-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 0 0 11px;
+        font-size: 14px;
+        font-weight: 800;
+      }
+
+      .summary-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 9px;
+      }
+
+      .metric {
+        min-height: 78px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--panel-soft);
+        padding: 11px;
+      }
+
+      .metric span {
+        display: block;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .metric strong {
+        display: block;
+        margin-top: 7px;
+        font-size: 18px;
+      }
+
+      .metric small {
+        display: block;
+        margin-top: 4px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .risk-low {
+        color: var(--ok);
+      }
+
+      .risk-medium {
+        color: var(--warn);
+      }
+
+      .risk-high {
+        color: var(--danger);
+      }
+
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        max-width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: #fff;
+        color: #344154;
+        padding: 7px 10px;
+        font-size: 13px;
+      }
+
+      .timeline {
+        display: grid;
+        gap: 9px;
+      }
+
+      .step {
+        display: grid;
+        grid-template-columns: 20px minmax(0, 1fr);
+        gap: 8px;
+      }
+
+      .dot {
+        width: 10px;
+        height: 10px;
+        margin-top: 6px;
+        border-radius: 999px;
+        background: var(--ok);
+      }
+
+      .step.warning .dot {
+        background: var(--warn);
+      }
+
+      .step.error .dot {
+        background: var(--danger);
+      }
+
+      .step strong {
+        display: block;
+        font-size: 13px;
+      }
+
+      .step p {
+        margin: 3px 0 0;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .evidence-list {
+        padding: 15px;
+      }
+
+      .evidence {
+        margin: 0 0 12px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: #fff;
+        padding: 12px;
+      }
+
+      .evidence header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        font-size: 13px;
+      }
+
+      .evidence p {
+        display: -webkit-box;
+        margin: 10px 0 0;
+        overflow: hidden;
+        color: #344154;
+        font-size: 13px;
+        line-height: 1.55;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 7;
+      }
+
+      .score {
+        border-radius: 999px;
+        background: var(--blue-soft);
+        color: var(--blue);
+        padding: 3px 8px;
+      }
+
+      .empty {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.55;
+      }
+
+      @media (max-width: 980px) {
+        main {
+          grid-template-columns: 1fr;
+        }
+
+        .workspace,
+        .inspector {
+          min-height: auto;
+        }
+
+        .chat-head,
+        .topbar,
+        .actions {
+          align-items: stretch;
+          flex-direction: column;
+        }
+
+        .top-actions,
+        .field-row {
+          flex-wrap: wrap;
+        }
+
+        .select-wrap {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <header class="topbar">
+        <div class="brand">
+          <div class="mark">P</div>
+          <div>
+            <h1 class="brand-title">PharmAssist</h1>
+            <p class="brand-subtitle" data-i18n="subtitle">可追溯 GMP 合规问答 Agent</p>
+          </div>
+        </div>
+        <div class="top-actions">
+          <div class="select-wrap" data-select="language">
+            <button class="select-trigger" type="button" id="languageTrigger">简体中文</button>
+            <div class="select-menu" role="listbox" aria-labelledby="languageTrigger">
+              <button class="select-option" type="button" data-value="zh-CN">简体中文</button>
+              <button class="select-option" type="button" data-value="zh-TW">繁體中文</button>
+              <button class="select-option" type="button" data-value="en">English</button>
+              <button class="select-option" type="button" data-value="ja">日本語</button>
+              <button class="select-option" type="button" data-value="de">Deutsch</button>
+            </div>
+          </div>
+          <a class="link-button" href="/docs" target="_blank" rel="noreferrer" data-i18n="apiDocs">API 文档</a>
+          <a class="link-button" href="/health" target="_blank" rel="noreferrer" data-i18n="health">健康检查</a>
+        </div>
+      </header>
+
+      <main>
+        <section class="workspace" aria-label="Chat workspace">
+          <div class="chat-head">
+            <div class="field-row">
+              <span class="select-label" data-i18n="strategy">检索策略</span>
+              <div class="select-wrap" data-select="strategy">
+                <button class="select-trigger" type="button" id="strategyTrigger">默认</button>
+                <div class="select-menu" role="listbox" aria-labelledby="strategyTrigger">
+                  <button class="select-option" type="button" data-value="" data-i18n="defaultStrategy">默认</button>
+                  <button class="select-option" type="button" data-value="direct">Direct</button>
+                  <button class="select-option" type="button" data-value="decompose">Decompose</button>
+                  <button class="select-option" type="button" data-value="hyde">HyDE</button>
+                  <button class="select-option" type="button" data-value="hybrid">Hybrid</button>
+                </div>
+              </div>
+            </div>
+            <div class="field-row">
+              <label for="session" data-i18n="session">会话</label>
+              <input id="session" value="demo" />
+            </div>
+          </div>
+
+          <div class="chat-scroll">
+            <div id="transcript" class="transcript">
+              <div class="message assistant">
+                <div class="message-content" data-i18n="welcome">
+                  你好，我是 PharmAssist。你可以问我 GMP、偏差处理、洁净区控制、放行审核或 SOP 相关问题。
+                </div>
+              </div>
+            </div>
+            <div class="scroll-rail" aria-hidden="true">
+              <div id="chatScrollThumb" class="scroll-thumb"></div>
+            </div>
+          </div>
+
+          <div class="composer">
+            <textarea id="question"></textarea>
+            <div class="actions">
+              <span class="hint" data-i18n="sendHint">Enter 发送，Shift + Enter 换行</span>
+              <div>
+                <button id="clear" type="button" data-i18n="clear">清空</button>
+                <button id="stop" class="secondary-danger" type="button" data-i18n="stop">停止</button>
+                <button id="send" class="primary" type="button" data-i18n="send">发送</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <aside class="inspector" aria-label="Compliance inspector">
+          <div id="inspectorScroll" class="inspector-scroll">
+            <section class="panel">
+              <h2 class="panel-title" data-i18n="summaryTitle">合规摘要</h2>
+              <div class="summary-grid">
+                <div class="metric">
+                  <span data-i18n="riskLabel">合规风险</span>
+                  <strong id="risk">-</strong>
+                  <small data-i18n="riskHelp">问题敏感程度</small>
+                </div>
+                <div class="metric">
+                  <span data-i18n="reviewLabel">建议人工复核</span>
+                  <strong id="review">-</strong>
+                  <small data-i18n="reviewHelp">高风险或证据不足时触发</small>
+                </div>
+                <div class="metric">
+                  <span data-i18n="citationLabel">证据支撑</span>
+                  <strong id="citation">-</strong>
+                  <small data-i18n="citationHelp">回答引用是否有效</small>
+                </div>
+                <div class="metric">
+                  <span data-i18n="timeLabel">响应耗时</span>
+                  <strong id="totalTime">-</strong>
+                  <small id="timeBreakdown">-</small>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel">
+              <h2 class="panel-title" data-i18n="subQuestionsTitle">系统拆解的问题</h2>
+              <div id="subQuestions" class="chips"><span class="empty" data-i18n="none">暂无</span></div>
+            </section>
+
+            <section class="panel">
+              <h2 class="panel-title" data-i18n="traceTitle">处理过程</h2>
+              <div id="traceSteps" class="timeline"><div class="empty" data-i18n="traceEmpty">提交问题后显示系统执行轨迹。</div></div>
+            </section>
+
+            <section id="evidenceList" class="evidence-list">
+              <div class="empty" data-i18n="evidenceEmpty">提交问题后显示引用证据。</div>
+            </section>
+          </div>
+          <div class="scroll-rail inspector-rail" aria-hidden="true">
+            <div id="inspectorScrollThumb" class="scroll-thumb"></div>
+          </div>
+        </aside>
+      </main>
+    </div>
+
+    <script>
+      const translations = {
+        "zh-CN": {
+          subtitle: "可追溯 GMP 合规问答 Agent",
+          apiDocs: "API 文档",
+          health: "健康检查",
+          strategy: "检索策略",
+          defaultStrategy: "默认",
+          session: "会话",
+          welcome: "你好，我是 PharmAssist。你可以问我 GMP、偏差处理、洁净区控制、放行审核或 SOP 相关问题。",
+          placeholder: "输入问题，例如：发生偏差后应该如何处理？",
+          sendHint: "Enter 发送，Shift + Enter 换行",
+          clear: "清空",
+          stop: "停止",
+          send: "发送",
+          sending: "发送中...",
+          stopped: "已停止生成。",
+          loading: "正在检索证据并生成回答...",
+          summaryTitle: "合规摘要",
+          riskLabel: "合规风险",
+          riskHelp: "问题敏感程度",
+          reviewLabel: "建议人工复核",
+          reviewHelp: "高风险或证据不足时触发",
+          citationLabel: "证据支撑",
+          citationHelp: "回答引用是否有效",
+          timeLabel: "响应耗时",
+          subQuestionsTitle: "系统拆解的问题",
+          traceTitle: "处理过程",
+          traceEmpty: "提交问题后显示系统执行轨迹。",
+          evidenceEmpty: "提交问题后显示引用证据。",
+          none: "暂无",
+          yes: "需要",
+          no: "不需要",
+          passed: "通过",
+          reviewNeeded: "待复核",
+          noEvidence: "暂无证据。",
+          cleared: "会话已清空。",
+          noAnswer: "无回答。",
+          errorPrefix: "请求失败：",
+          timingBreakdown: (t) => `检索 ${t.retrieval_ms || 0}ms · 生成 ${t.generation_ms || 0}ms`,
+        },
+        "zh-TW": {
+          subtitle: "可追溯 GMP 合規問答 Agent",
+          apiDocs: "API 文件",
+          health: "健康檢查",
+          strategy: "檢索策略",
+          defaultStrategy: "預設",
+          session: "會話",
+          welcome: "你好，我是 PharmAssist。你可以問我 GMP、偏差處理、潔淨區控制、放行審核或 SOP 相關問題。",
+          placeholder: "輸入問題，例如：發生偏差後應該如何處理？",
+          sendHint: "Enter 送出，Shift + Enter 換行",
+          clear: "清空",
+          stop: "停止",
+          send: "送出",
+          sending: "送出中...",
+          stopped: "已停止生成。",
+          loading: "正在檢索證據並生成回答...",
+          summaryTitle: "合規摘要",
+          riskLabel: "合規風險",
+          riskHelp: "問題敏感程度",
+          reviewLabel: "建議人工覆核",
+          reviewHelp: "高風險或證據不足時觸發",
+          citationLabel: "證據支撐",
+          citationHelp: "回答引用是否有效",
+          timeLabel: "回應耗時",
+          subQuestionsTitle: "系統拆解的問題",
+          traceTitle: "處理過程",
+          traceEmpty: "提交問題後顯示系統執行軌跡。",
+          evidenceEmpty: "提交問題後顯示引用證據。",
+          none: "暫無",
+          yes: "需要",
+          no: "不需要",
+          passed: "通過",
+          reviewNeeded: "待覆核",
+          noEvidence: "暫無證據。",
+          cleared: "會話已清空。",
+          noAnswer: "無回答。",
+          errorPrefix: "請求失敗：",
+          timingBreakdown: (t) => `檢索 ${t.retrieval_ms || 0}ms · 生成 ${t.generation_ms || 0}ms`,
+        },
+        en: {
+          subtitle: "Traceable GMP compliance QA Agent",
+          apiDocs: "API Docs",
+          health: "Health",
+          strategy: "Retrieval",
+          defaultStrategy: "Default",
+          session: "Session",
+          welcome: "Hi, I am PharmAssist. Ask about GMP, deviations, cleanroom control, release review, or SOPs.",
+          placeholder: "Type a question, e.g. How should deviations be handled?",
+          sendHint: "Enter to send, Shift + Enter for a new line",
+          clear: "Clear",
+          stop: "Stop",
+          send: "Send",
+          sending: "Sending...",
+          stopped: "Generation stopped.",
+          loading: "Retrieving evidence and generating an answer...",
+          summaryTitle: "Compliance Summary",
+          riskLabel: "Compliance Risk",
+          riskHelp: "Sensitivity of the question",
+          reviewLabel: "Human Review",
+          reviewHelp: "Triggered by high risk or weak evidence",
+          citationLabel: "Evidence Support",
+          citationHelp: "Whether citations are valid",
+          timeLabel: "Response Time",
+          subQuestionsTitle: "Decomposed Questions",
+          traceTitle: "Process Trace",
+          traceEmpty: "The system trace appears after a question is submitted.",
+          evidenceEmpty: "Referenced evidence appears after a question is submitted.",
+          none: "None",
+          yes: "Required",
+          no: "Not required",
+          passed: "Passed",
+          reviewNeeded: "Needs review",
+          noEvidence: "No evidence.",
+          cleared: "Conversation cleared.",
+          noAnswer: "No answer.",
+          errorPrefix: "Request failed: ",
+          timingBreakdown: (t) => `retrieval ${t.retrieval_ms || 0}ms · generation ${t.generation_ms || 0}ms`,
+        },
+        ja: {
+          subtitle: "追跡可能な GMP コンプライアンス QA Agent",
+          apiDocs: "API ドキュメント",
+          health: "ヘルスチェック",
+          strategy: "検索戦略",
+          defaultStrategy: "デフォルト",
+          session: "セッション",
+          welcome: "こんにちは、PharmAssist です。GMP、逸脱処理、清浄区域管理、出荷判定、SOP について質問できます。",
+          placeholder: "質問を入力してください。例：逸脱発生後はどう対応すべきですか？",
+          sendHint: "Enter で送信、Shift + Enter で改行",
+          clear: "クリア",
+          stop: "停止",
+          send: "送信",
+          sending: "送信中...",
+          stopped: "生成を停止しました。",
+          loading: "証拠を検索し、回答を生成しています...",
+          summaryTitle: "コンプライアンス概要",
+          riskLabel: "リスク",
+          riskHelp: "質問の重要度",
+          reviewLabel: "人手レビュー",
+          reviewHelp: "高リスクまたは証拠不足で必要",
+          citationLabel: "証拠サポート",
+          citationHelp: "引用が有効かどうか",
+          timeLabel: "応答時間",
+          subQuestionsTitle: "分解された質問",
+          traceTitle: "処理プロセス",
+          traceEmpty: "質問後に実行トレースを表示します。",
+          evidenceEmpty: "質問後に引用証拠を表示します。",
+          none: "なし",
+          yes: "必要",
+          no: "不要",
+          passed: "合格",
+          reviewNeeded: "要レビュー",
+          noEvidence: "証拠なし。",
+          cleared: "会話をクリアしました。",
+          noAnswer: "回答なし。",
+          errorPrefix: "リクエスト失敗：",
+          timingBreakdown: (t) => `検索 ${t.retrieval_ms || 0}ms · 生成 ${t.generation_ms || 0}ms`,
+        },
+        de: {
+          subtitle: "Nachvollziehbarer GMP-Compliance-QA-Agent",
+          apiDocs: "API-Doku",
+          health: "Status",
+          strategy: "Retrieval",
+          defaultStrategy: "Standard",
+          session: "Session",
+          welcome: "Hallo, ich bin PharmAssist. Stelle Fragen zu GMP, Abweichungen, Reinraumkontrolle, Freigabeprüfung oder SOPs.",
+          placeholder: "Frage eingeben, z. B.: Wie sollen Abweichungen behandelt werden?",
+          sendHint: "Enter zum Senden, Shift + Enter für neue Zeile",
+          clear: "Leeren",
+          stop: "Stopp",
+          send: "Senden",
+          sending: "Senden...",
+          stopped: "Generierung gestoppt.",
+          loading: "Evidenz wird gesucht und Antwort generiert...",
+          summaryTitle: "Compliance-Zusammenfassung",
+          riskLabel: "Compliance-Risiko",
+          riskHelp: "Sensitivität der Frage",
+          reviewLabel: "Human Review",
+          reviewHelp: "Bei hohem Risiko oder schwacher Evidenz",
+          citationLabel: "Evidenzstützung",
+          citationHelp: "Ob Zitationen gültig sind",
+          timeLabel: "Antwortzeit",
+          subQuestionsTitle: "Zerlegte Fragen",
+          traceTitle: "Prozessablauf",
+          traceEmpty: "Der Ablauf erscheint nach dem Absenden einer Frage.",
+          evidenceEmpty: "Referenzierte Evidenz erscheint nach dem Absenden.",
+          none: "Keine",
+          yes: "Erforderlich",
+          no: "Nicht erforderlich",
+          passed: "Bestanden",
+          reviewNeeded: "Prüfung nötig",
+          noEvidence: "Keine Evidenz.",
+          cleared: "Konversation geleert.",
+          noAnswer: "Keine Antwort.",
+          errorPrefix: "Anfrage fehlgeschlagen: ",
+          timingBreakdown: (t) => `Retrieval ${t.retrieval_ms || 0}ms · Generierung ${t.generation_ms || 0}ms`,
+        },
+      };
+
+      const transcript = document.querySelector("#transcript");
+      const question = document.querySelector("#question");
+      const sessionInput = document.querySelector("#session");
+      const sendButton = document.querySelector("#send");
+      const stopButton = document.querySelector("#stop");
+      const clearButton = document.querySelector("#clear");
+      const customSelects = document.querySelectorAll(".select-wrap");
+      const chatScrollThumb = document.querySelector("#chatScrollThumb");
+      const inspectorScroll = document.querySelector("#inspectorScroll");
+      const inspectorScrollThumb = document.querySelector("#inspectorScrollThumb");
+      const risk = document.querySelector("#risk");
+      const review = document.querySelector("#review");
+      const citation = document.querySelector("#citation");
+      const totalTime = document.querySelector("#totalTime");
+      const timeBreakdown = document.querySelector("#timeBreakdown");
+      const subQuestions = document.querySelector("#subQuestions");
+      const traceSteps = document.querySelector("#traceSteps");
+      const evidenceList = document.querySelector("#evidenceList");
+
+      let lang = pickInitialLanguage();
+      let selectedStrategy = "";
+      let activeAbortController = null;
+      let activeReader = null;
+      let isStreaming = false;
+
+      function pickInitialLanguage() {
+        const saved = localStorage.getItem("pharmassist.lang");
+        if (saved && translations[saved]) return saved;
+        const browserLang = navigator.language || "zh-CN";
+        if (browserLang.startsWith("zh-TW") || browserLang.startsWith("zh-HK")) return "zh-TW";
+        if (browserLang.startsWith("zh")) return "zh-CN";
+        if (browserLang.startsWith("ja")) return "ja";
+        if (browserLang.startsWith("de")) return "de";
+        return "en";
+      }
+
+      function t(key, arg) {
+        const value = translations[lang][key] ?? translations.en[key] ?? key;
+        return typeof value === "function" ? value(arg) : value;
+      }
+
+      function applyLanguage() {
+        document.documentElement.lang = lang;
+        document.querySelectorAll("[data-i18n]").forEach((node) => {
+          node.textContent = t(node.dataset.i18n);
+        });
+        question.placeholder = t("placeholder");
+        sendButton.textContent = sendButton.disabled ? t("sending") : t("send");
+        stopButton.textContent = t("stop");
+        updateSelectLabel("language", lang);
+        updateSelectLabel("strategy", selectedStrategy);
+      }
+
+      function updateSelectLabel(name, value) {
+        const wrap = document.querySelector(`[data-select="${name}"]`);
+        if (!wrap) return;
+        const trigger = wrap.querySelector(".select-trigger");
+        const options = wrap.querySelectorAll(".select-option");
+        options.forEach((option) => option.classList.toggle("active", option.dataset.value === value));
+        const active = [...options].find((option) => option.dataset.value === value) || options[0];
+        trigger.textContent = active.textContent.trim();
+      }
+
+      function setupCustomSelects() {
+        customSelects.forEach((wrap) => {
+          const trigger = wrap.querySelector(".select-trigger");
+          const options = wrap.querySelectorAll(".select-option");
+          trigger.addEventListener("click", (event) => {
+            event.stopPropagation();
+            customSelects.forEach((item) => {
+              if (item !== wrap) item.classList.remove("open");
+            });
+            wrap.classList.toggle("open");
+          });
+          options.forEach((option) => {
+            option.addEventListener("click", () => {
+              const value = option.dataset.value || "";
+              const name = wrap.dataset.select;
+              if (name === "language") {
+                lang = value;
+                localStorage.setItem("pharmassist.lang", lang);
+                applyLanguage();
+              }
+              if (name === "strategy") {
+                selectedStrategy = value;
+                updateSelectLabel("strategy", selectedStrategy);
+              }
+              wrap.classList.remove("open");
+            });
+          });
+        });
+
+        document.addEventListener("click", () => {
+          customSelects.forEach((wrap) => wrap.classList.remove("open"));
+        });
+      }
+
+      function appendMessage(role, content, isError = false, markdown = false) {
+        const item = document.createElement("div");
+        item.className = `message ${role}${isError ? " error" : ""}`;
+        const body = document.createElement("div");
+        body.className = "message-content";
+        body[markdown ? "innerHTML" : "textContent"] = markdown ? renderMarkdown(content) : content;
+        item.appendChild(body);
+        transcript.appendChild(item);
+        scrollTranscriptToBottom();
+        return body;
+      }
+
+      function appendLoadingMessage() {
+        const body = appendMessage("assistant", "", false, false);
+        body.innerHTML = `<span class="typing"><span class="spinner"></span><span>${escapeHtml(t("loading"))}</span></span>`;
+        return body;
+      }
+
+      function renderMessage(body, markdown) {
+        body.innerHTML = renderMarkdown(markdown);
+        scrollTranscriptToBottom();
+      }
+
+      function setLoading(loading) {
+        sendButton.disabled = loading;
+        sendButton.textContent = loading ? t("sending") : t("send");
+        stopButton.classList.toggle("visible", loading);
+      }
+
+      function stopStreaming() {
+        if (!isStreaming) return;
+        if (activeReader) {
+          activeReader.cancel().catch(() => {});
+        }
+        if (activeAbortController) {
+          activeAbortController.abort();
+        }
+      }
+
+      function updateMeta(data) {
+        const timing = data.timing || {};
+        risk.textContent = data.risk_level || "-";
+        risk.className = `risk-${data.risk_level || "low"}`;
+        review.textContent = data.requires_human_review ? t("yes") : t("no");
+        citation.textContent = data.citation_check?.grounded ? t("passed") : t("reviewNeeded");
+        totalTime.textContent = timing.total_ms ? `${timing.total_ms}ms` : "-";
+        timeBreakdown.textContent = timing.total_ms ? t("timingBreakdown", timing) : "-";
+
+        renderSubQuestions(data.sub_questions || []);
+        renderTrace(data.trace_steps || []);
+        renderEvidence(data.sources || []);
+      }
+
+      function renderSubQuestions(items) {
+        subQuestions.innerHTML = "";
+        if (!items.length) {
+          subQuestions.innerHTML = `<span class="empty">${escapeHtml(t("none"))}</span>`;
+          return;
+        }
+        items.forEach((text) => {
+          const chip = document.createElement("span");
+          chip.className = "chip";
+          chip.textContent = text;
+          subQuestions.appendChild(chip);
+        });
+      }
+
+      function renderTrace(items) {
+        traceSteps.innerHTML = "";
+        if (!items.length) {
+          traceSteps.innerHTML = `<div class="empty">${escapeHtml(t("traceEmpty"))}</div>`;
+          return;
+        }
+        items.forEach((step) => {
+          const item = document.createElement("div");
+          item.className = `step ${step.status || "done"}`;
+          item.innerHTML = `
+            <span class="dot"></span>
+            <div>
+              <strong>${escapeHtml(step.title || "")}</strong>
+              <p>${escapeHtml(step.detail || "")}</p>
+            </div>
+          `;
+          traceSteps.appendChild(item);
+        });
+      }
+
+      function renderEvidence(sources) {
+        evidenceList.innerHTML = "";
+        if (!sources.length) {
+          evidenceList.innerHTML = `<div class="empty">${escapeHtml(t("noEvidence"))}</div>`;
+          return;
+        }
+        sources.forEach((source, index) => {
+          const item = document.createElement("article");
+          item.className = "evidence";
+          item.innerHTML = `
+            <header>
+              <strong>[${index + 1}] ${escapeHtml(source.source || "unknown")}</strong>
+              <span class="score">${Number(source.score || 0).toFixed(3)}</span>
+            </header>
+            <p>${escapeHtml(source.content || "")}</p>
+          `;
+          evidenceList.appendChild(item);
+        });
+        updateCustomScrollbar(inspectorScroll, inspectorScrollThumb);
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      async function sendQuestion() {
+        const text = question.value.trim();
+        if (!text || sendButton.disabled) {
+          question.focus();
+          return;
+        }
+
+        appendMessage("user", text);
+        question.value = "";
+        setLoading(true);
+        isStreaming = true;
+        activeAbortController = new AbortController();
+        const assistantBody = appendLoadingMessage();
+        let answer = "";
+
+        try {
+          const payload = {
+            question: text,
+            session_id: sessionInput.value.trim() || "demo",
+            language: lang,
+          };
+          if (selectedStrategy) payload.strategy = selectedStrategy;
+
+          const response = await fetch("/chat/stream", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+            signal: activeAbortController.signal,
+          });
+
+          if (!response.ok) {
+            const detail = await response.text();
+            throw new Error(detail || `HTTP ${response.status}`);
+          }
+
+          let buffer = "";
+          const reader = response.body.getReader();
+          activeReader = reader;
+          const decoder = new TextDecoder("utf-8");
+
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split("\n");
+            buffer = lines.pop() || "";
+            for (const line of lines) {
+              if (!line.trim()) continue;
+              const event = JSON.parse(line);
+              if (event.type === "meta") {
+                updateMeta(event.data);
+              } else if (event.type === "token") {
+                answer += event.content || "";
+                renderMessage(assistantBody, answer);
+              } else if (event.type === "error") {
+                throw new Error(event.message || "stream error");
+              }
+            }
+          }
+
+          if (!answer) renderMessage(assistantBody, t("noAnswer"));
+        } catch (error) {
+          if (activeAbortController?.signal.aborted || error.name === "AbortError") {
+            renderMessage(assistantBody, answer ? `${answer}\n\n_${t("stopped")}_` : t("stopped"));
+            return;
+          }
+          assistantBody.closest(".message").remove();
+          appendMessage("assistant", `${t("errorPrefix")}${error.message}`, true);
+        } finally {
+          isStreaming = false;
+          activeAbortController = null;
+          activeReader = null;
+          setLoading(false);
+          question.focus();
+        }
+      }
+
+      function scrollTranscriptToBottom() {
+        transcript.scrollTop = transcript.scrollHeight;
+        updateCustomScrollbar(transcript, chatScrollThumb);
+      }
+
+      function updateCustomScrollbar(scroller, thumb) {
+        const rail = thumb.parentElement;
+        const visible = scroller.clientHeight;
+        const total = scroller.scrollHeight;
+        const railHeight = rail.clientHeight;
+        if (total <= visible + 1) {
+          rail.style.display = "none";
+          return;
+        }
+        rail.style.display = "block";
+        const thumbHeight = Math.max(38, (visible / total) * railHeight);
+        const maxTop = railHeight - thumbHeight;
+        const ratio = scroller.scrollTop / (total - visible);
+        thumb.style.height = `${thumbHeight}px`;
+        thumb.style.transform = `translateY(${maxTop * ratio}px)`;
+      }
+
+      function setupCustomScrollbar(scroller, thumb) {
+        let dragging = false;
+        let startY = 0;
+        let startScrollTop = 0;
+
+        scroller.addEventListener("scroll", () => updateCustomScrollbar(scroller, thumb));
+        window.addEventListener("resize", () => updateCustomScrollbar(scroller, thumb));
+
+        thumb.addEventListener("pointerdown", (event) => {
+          dragging = true;
+          startY = event.clientY;
+          startScrollTop = scroller.scrollTop;
+          thumb.setPointerCapture(event.pointerId);
+          event.preventDefault();
+        });
+
+        thumb.addEventListener("pointermove", (event) => {
+          if (!dragging) return;
+          const rail = thumb.parentElement;
+          const visible = scroller.clientHeight;
+          const total = scroller.scrollHeight;
+          const thumbHeight = thumb.offsetHeight;
+          const maxTop = Math.max(1, rail.clientHeight - thumbHeight);
+          const delta = event.clientY - startY;
+          scroller.scrollTop = startScrollTop + (delta / maxTop) * (total - visible);
+        });
+
+        thumb.addEventListener("pointerup", (event) => {
+          dragging = false;
+          thumb.releasePointerCapture(event.pointerId);
+        });
+
+        updateCustomScrollbar(scroller, thumb);
+      }
+
+      function renderMarkdown(markdown) {
+        const codeBlocks = [];
+        let text = String(markdown || "").replace(/```([\s\S]*?)```/g, (_, code) => {
+          const token = `@@CODE_BLOCK_${codeBlocks.length}@@`;
+          codeBlocks.push(`<pre><code>${escapeHtml(code.trim())}</code></pre>`);
+          return token;
+        });
+
+        text = escapeHtml(text)
+          .replace(/&lt;br\s*\/?&gt;/gi, "<br>")
+          .replace(/^###### (.*)$/gm, "<h6>$1</h6>")
+          .replace(/^##### (.*)$/gm, "<h5>$1</h5>")
+          .replace(/^#### (.*)$/gm, "<h4>$1</h4>")
+          .replace(/^### (.*)$/gm, "<h3>$1</h3>")
+          .replace(/^## (.*)$/gm, "<h2>$1</h2>")
+          .replace(/^# (.*)$/gm, "<h1>$1</h1>")
+          .replace(/^(?:---|\*\*\*|___)$/gm, "<hr>")
+          .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+          .replace(/`([^`]+)`/g, "<code>$1</code>")
+          .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noreferrer">$1</a>');
+
+        const lines = text.split("\n");
+        const blocks = [];
+        let listItems = [];
+        let orderedItems = [];
+        let tableRows = [];
+        const flushList = () => {
+          if (listItems.length) {
+            blocks.push(`<ul>${listItems.join("")}</ul>`);
+            listItems = [];
+          }
+          if (orderedItems.length) {
+            blocks.push(`<ol>${orderedItems.join("")}</ol>`);
+            orderedItems = [];
+          }
+        };
+        const isTableRow = (line) => /^\|.*\|$/.test(line.trim());
+        const isTableDivider = (line) => {
+          const cells = splitTableCells(line);
+          return cells.length > 0 && cells.every((cell) => /^:?-{3,}:?$/.test(cell.trim()));
+        };
+        const splitTableCells = (line) => line.trim().replace(/^\|/, "").replace(/\|$/, "").split("|").map((cell) => cell.trim());
+        const flushTable = () => {
+          if (!tableRows.length) return;
+          const header = splitTableCells(tableRows[0] || "");
+          const bodyRows = tableRows.slice(isTableDivider(tableRows[1] || "") ? 2 : 1);
+          if (!header.length || !bodyRows.length) {
+            tableRows.forEach((row) => blocks.push(`<p>${row}</p>`));
+            tableRows = [];
+            return;
+          }
+          const headHtml = `<thead><tr>${header.map((cell) => `<th>${cell}</th>`).join("")}</tr></thead>`;
+          const bodyHtml = `<tbody>${bodyRows.map((row) => `<tr>${splitTableCells(row).map((cell) => `<td>${cell}</td>`).join("")}</tr>`).join("")}</tbody>`;
+          blocks.push(`<table>${headHtml}${bodyHtml}</table>`);
+          tableRows = [];
+        };
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          const bullet = trimmed.match(/^[-*]\s+(.+)$/);
+          const ordered = trimmed.match(/^\d+\.\s+(.+)$/);
+          if (isTableRow(trimmed)) {
+            flushList();
+            tableRows.push(trimmed);
+            continue;
+          }
+          flushTable();
+          if (bullet) {
+            if (orderedItems.length) flushList();
+            listItems.push(`<li>${bullet[1]}</li>`);
+            continue;
+          }
+          if (ordered) {
+            if (listItems.length) flushList();
+            orderedItems.push(`<li>${ordered[1]}</li>`);
+            continue;
+          }
+          flushList();
+          if (!trimmed) continue;
+          if (/^<h[1-6]>/.test(trimmed) || trimmed === "<hr>" || /^@@CODE_BLOCK_/.test(trimmed)) {
+            blocks.push(trimmed);
+          } else if (trimmed.startsWith("&gt; ")) {
+            blocks.push(`<blockquote>${trimmed.replace(/^&gt;\s+/, "")}</blockquote>`);
+          } else if (/^<blockquote>/.test(trimmed)) {
+            blocks.push(trimmed);
+          } else {
+            blocks.push(`<p>${trimmed}</p>`);
+          }
+        }
+        flushTable();
+        flushList();
+
+        let html = blocks.join("");
+        codeBlocks.forEach((block, index) => {
+          html = html.replace(`@@CODE_BLOCK_${index}@@`, block);
+        });
+        return html;
+      }
+
+      sendButton.addEventListener("click", sendQuestion);
+      stopButton.addEventListener("click", stopStreaming);
+      clearButton.addEventListener("click", () => {
+        stopStreaming();
+        transcript.innerHTML = "";
+        appendMessage("assistant", t("cleared"));
+        updateMeta({ sources: [], sub_questions: [], trace_steps: [], citation_check: {}, timing: {} });
+      });
+      question.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" && !event.shiftKey) {
+          event.preventDefault();
+          sendQuestion();
+        }
+      });
+      setupCustomSelects();
+      setupCustomScrollbar(transcript, chatScrollThumb);
+      setupCustomScrollbar(inspectorScroll, inspectorScrollThumb);
+      applyLanguage();
+    </script>
+  </body>
+</html>

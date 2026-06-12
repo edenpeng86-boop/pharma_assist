@@ -12,6 +12,7 @@ PharmAssist 是一个面向 GMP、药典和内部 SOP 问答的组合式 RAG Age
 ## 已实现的 MVP
 
 - 提供带有 `/chat`、`/health` 和 `/history/{session_id}` 路由的 FastAPI 服务。
+- 提供支持流式输出、Markdown 渲染、多语言切换、响应耗时、处理过程和证据面板的 Web 聊天客户端。
 - 支持 `.txt`、`.md`、`.pdf` 和 `.docx` 的文档导入。
 - 使用保留元数据块的 Chroma 向量索引。
 - 查询分解与 HyDE 风格的检索钩子。
@@ -54,6 +55,35 @@ python scripts/init_kb.py
 python -m src.api.app
 ```
 
+如果你想使用真实模型服务，请先编辑 `.env` 再初始化知识库：
+
+```env
+LLM_API_KEY=你的聊天模型Key
+LLM_BASE_URL=https://api.openai.com/v1
+LLM_MODEL=gpt-4o-mini
+
+EMBEDDING_API_KEY=你的Embedding模型Key
+EMBEDDING_PROVIDER=ollama
+EMBEDDING_BASE_URL=http://localhost:11434
+EMBEDDING_MODEL=bge-m3
+```
+
+`LLM_*` 和 `EMBEDDING_*` 可以配置成两个不同的服务。中文本地检索推荐使用 `EMBEDDING_PROVIDER=ollama` 和 `EMBEDDING_MODEL=bge-m3`。如果使用 OpenAI 兼容服务且未填写新变量，项目会兼容回退到 `OPENAI_API_KEY` / `OPENAI_BASE_URL`。如果所有 Key 都不配置且不使用 Ollama，项目仍会以离线演示模式运行：聊天使用确定性回答，向量检索使用本地 Hash Embedding。
+
+修改 embedding provider 或模型后，必须重新构建向量库：
+
+```bash
+python scripts/init_kb.py
+```
+
+`init_kb.py` 默认会重建 `data/chroma_db/`，这样切换 HashEmbeddings、OpenAI Embedding、Ollama BGE-M3 时不会遇到向量维度不一致错误。只有在你明确想保留现有 collection 时，才使用 `python scripts/init_kb.py --append`。
+
+打开 Web 客户端：
+
+```text
+http://localhost:8000/
+```
+
 测试 API：
 
 ```bash
@@ -62,7 +92,17 @@ curl -X POST http://localhost:8000/chat ^
   -d "{\"question\":\"液体制剂生产区洁净级别如何要求？\",\"session_id\":\"demo\"}"
 ```
 
-如果未配置 `OPENAI_API_KEY`，项目将以确定性的演示模式运行。这是有意为之：面试者仍然可以启动服务并检查工作流，而不需要付费凭证。
+如果未配置任何 API Key，项目将以确定性的演示模式运行。这是有意为之：面试者仍然可以启动服务并检查工作流，而不需要付费凭证。
+
+## 日志
+
+运行日志会同时输出到控制台和文件：
+
+```text
+logs/pharmassist.log
+```
+
+每个请求都会记录开始、结束、耗时、状态码，以及 `/chat` 的风险等级、证据数量和是否需要人工复核。未处理异常会在日志文件中保留完整堆栈。
 
 ## 项目结构
 

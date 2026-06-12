@@ -1,11 +1,26 @@
+# Python cache / bytecode
 __pycache__/
-*.pyc
+**/__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Local env / secrets
 .env
 .venv/
 venv/
 config/local.yaml
+
+# Generated local data
 data/chroma_db/
-data/gmp/
+data/knowledge/
+
+# Logs / IDE / OS
 *.log
-.pytest_cache/
+.idea/
+.vscode/
 .DS_Store
